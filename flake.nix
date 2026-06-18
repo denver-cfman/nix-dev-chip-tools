@@ -10,53 +10,32 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
-          system = system;
+          inherit system;
           config = { allowUnfree = true; };
         };
       in
       {
-        devShells.default = pkgs.mkShell {
-          name = "chip-tools-env";
+        devShells.default = 
+          # This assertion blocks evaluation completely on Apple Silicon
+          assert pkgs.stdenv.hostPlatform.system != "aarch64-darwin" || 
+            builtins.throw "❌ Error: chip-tools does not support aarch64-darwin. It requires a Linux platform for raw USB flashing tooling.";
+          
+          pkgs.mkShell {
+            name = "chip-tools-env";
 
-          # Tools required to run the repo's flashing scripts
-          nativeBuildInputs = with pkgs; [
-            git
-            curl
-            sunxi-tools      # Crucial: Provides 'sunxi-fel' for flashing Allwinner SoCs
-            android-tools    # Provides 'fastboot' often invoked by Allwinner flash scripts
-            picocom          # Reliable serial console emulator for testing UART console (115200 baud)
-            libusb1          # Essential backend dependency for sunxi-fel communicating over USB
-            pkg-config
+            nativeBuildInputs = with pkgs; [
+              git
+              curl
+              sunxi-tools
+              android-tools
+              picocom
+              libusb1
+              pkg-config
+            ];
 
-            # Common scripting and formatting dependencies for the wrapper tools
-            bashInteractive
-            coreutils
-            gnused
-            gawk
-          ];
-
-          shellHook = ''
-            echo "========================================================="
-            echo "  ⚡ C.H.I.P. Hardware Tools Dev Environment Loaded ⚡  "
-            echo "========================================================="
-            
-            # Auto-clone the target repository if it doesn't already exist locally
-            REPO_DIR="chip-tools"
-            if [ ! -d "$REPO_DIR" ]; then
-              echo "⚙️ Cloning joelguittet/chip-tools repository..."
-              git clone https://github.com/joelguittet/chip-tools.git "$REPO_DIR"
-            else
-              echo "✅ Repository folder '$REPO_DIR' already present."
-            fi
-
-            echo ""
-            echo "👉 To interface with your C.H.I.P. or C.H.I.P. Pro over serial:"
-            echo "   picocom -b 115200 /dev/ttyUSB0 (or /dev/ttyACM0)"
-            echo ""
-            echo "⚠️  NOTE: Running 'sunxi-fel' or executing flashing scripts"
-            echo "   requires USB access privileges. You may need 'sudo' or specific udev rules."
-            echo "========================================================="
-          '';
-        };
+            shellHook = ''
+              echo "⚡ Environment Loaded Successfully ⚡"
+            '';
+          };
       });
 }
