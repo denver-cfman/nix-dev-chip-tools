@@ -43,20 +43,25 @@
             
             # Auto-clone the target repository if it doesn't already exist locally
             REPO_DIR="chip-tools"
-            if [ ! -d "$REPO_DIR" ]; then
-              echo "⚙️ Cloning joelguittet/chip-tools repository..."
-              git clone https://github.com/joelguittet/chip-tools.git "$REPO_DIR"
-            else
-              echo "✅ Repository folder '$REPO_DIR' already present."
-            fi
-
-            echo ""
-            echo "👉 To interface with your C.H.I.P. or C.H.I.P. Pro over serial:"
-            echo "   picocom -b 115200 /dev/ttyUSB0 (or /dev/ttyACM0)"
-            echo ""
-            echo "⚠️  NOTE: Running 'sunxi-fel' or executing flashing scripts"
-            echo "   requires USB access privileges. You may need 'sudo' or specific udev rules."
-            echo "========================================================="
+              if [ ! -d "$REPO_DIR" ]; then
+                echo "⚙️ Cloning joelguittet/chip-tools repository..."
+                git clone https://github.com/joelguittet/chip-tools.git "$REPO_DIR"
+                
+                # Check if the clone succeeded, then make the shell scripts executable
+                if [ -d "$REPO_DIR" ]; then
+                  echo "🚀 Setting execution permissions on shell scripts..."
+                  chmod +x "$REPO_DIR"/*.sh
+                fi
+              else
+                echo "✅ Repository folder '$REPO_DIR' already present."
+                # Optional: Re-assert execution permissions even if the folder exists
+                chmod +x "$REPO_DIR"/*.sh 2>/dev/null
+              fi
+            
+              echo ""
+              echo "👉 To interface with your C.H.I.P. or C.H.I.P. Pro over serial:"
+              echo "   picocom -b 115200 /dev/ttyUSB0"
+              echo "========================================================="
           '';
         };
       });
