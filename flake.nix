@@ -52,6 +52,12 @@
                   echo "🚀 Setting execution permissions on shell scripts..."
                   chmod +x "$REPO_DIR"/*.sh
                 fi
+                if [ -d "$REPO_DIR" ]; then
+                    echo "🚀 Patching shebangs and setting execution permissions..."
+                    # This automatically updates #!/bin/bash to the exact Nix store bash location
+                    patchShebangs "$REPO_DIR"/*.sh
+                    chmod +x "$REPO_DIR"/*.sh
+                fi
               else
                 echo "✅ Repository folder '$REPO_DIR' already present."
                 # Optional: Re-assert execution permissions even if the folder exists
