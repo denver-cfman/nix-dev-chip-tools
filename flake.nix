@@ -10,12 +10,13 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
-          system = system;
+          inherit system;
           config = { allowUnfree = true; };
         };
       in
       {
-        devShells.default = pkgs.mkShell {
+          devShells.default = assert pkgs.stdenv.hostPlatform.system != "aarch64-darwin" || builtins.throw "❌ Error: chip-tools does not support aarch64-darwin. It requires a Linux platform for raw USB flashing tooling.";
+          pkgs.mkShell {
           name = "chip-tools-env";
 
           # Tools required to run the repo's flashing scripts
