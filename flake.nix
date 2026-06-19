@@ -19,30 +19,47 @@
           config = { allowUnfree = true; };
         };
 
-        # Package the tools into the Nix store and patch them cleanly
+        # Package the tools into the Nix store and safely isolate path lookups
         chip-tools = pkgs.stdenv.mkDerivation {
           pname = "chip-tools";
           version = "unstable";
           src = chip-tools-src;
 
+          # makeWrapper is required to safely wrap executables with context variables
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+
           installPhase = ''
+            mkdir -p $out/share/chip-tools
+            
+            # Copy all files (including the crucial bin/ firmware binaries) into a stable location
+            cp -r * $out/share/chip-tools/
+            
+            # Create our binary directory that will map to the user's PATH
             mkdir -p $out/bin
-            cp *.sh $out/bin/
-            chmod +x $out/bin/*.sh
+            
+            # Wrap the scripts so that they always execute from the context of their asset directory
+            for script in $out/share/chip-tools/*.sh; do
+              basename=$(basename "$script")
+              makeWrapper "$script" "$out/bin/$basename" \
+                --run "cd $out/share/chip-tools"
+            done
           '';
 
           postFixup = ''
-            patchShebangs $out/bin/*.sh
+            # Fix shebangs on the source scripts inside our share directory
+            patchShebangs $out/share/chip-tools/*.sh
           '';
         };
       in
       {
+        # Expose the packaged tools as the default package for this flake
         packages.default = chip-tools;
 
         devShells.default = assert pkgs.stdenv.hostPlatform.system != "aarch64-darwin" || builtins.throw "❌ Error: chip-tools does not support aarch64-darwin. It requires a Linux platform for raw USB flashing tooling.";
           pkgs.mkShell {
             name = "chip-tools-env";
 
+            # Tools required to support the flashing utilities and environment
             nativeBuildInputs = with pkgs; [
               git
               curl
@@ -55,7 +72,7 @@
               coreutils
               gnused
               gawk
-              chip-tools       # Injects your freshly patched flash scripts straight into your PATH
+              chip-tools       # Injects your freshly wrapped & patched flash scripts into your PATH
             ];
 
             shellHook = ''
@@ -68,7 +85,7 @@
               echo "   chip-flash-chip.sh"
               echo "   chip-flash-chip-pro.sh"
               echo ""
-              echo "👉 To interface over serial:"
+              echo "👉 To interface with your hardware over serial:"
               echo "   picocom -b 115200 /dev/ttyUSB0"
               echo "========================================================="
             '';
