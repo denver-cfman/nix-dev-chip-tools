@@ -21,7 +21,7 @@
         # 1. Integrated U-Boot derivation configured for cross-compilation
         uboot-chip = let 
           # Pull the armv7l-linux cross-compilation package set natively from Nixpkgs
-          armPkgs = import nixpkgs { crossSystem = { system = "armv7l-linux"; }; };
+          armPkgs = import nixpkgs { inherit system; crossSystem = { system = "armv7l-linux"; }; };
         in armPkgs.stdenv.mkDerivation {
           pname = "uboot-chip";
           version = "2023.10";
