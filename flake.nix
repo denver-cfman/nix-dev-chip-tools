@@ -47,16 +47,20 @@
             "HOSTCFLAGS=-I${pkgs.buildPackages.openssl.dev}/include"
             "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
           ];
-
+          
           configurePhase = ''
             runHook preConfigure
-            # Fix the build script error 
+            
+            # 1. CRITICAL: Fix the shebangs so Nix can find the interpreters in the sandbox
+            patchShebangs scripts/
+            
+            # 2. Fix the build script error
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             
-            # Load the base config
+            # 3. Load the base config
             make CHIP_defconfig $makeFlags
             
-            # Inject Fastboot and USB support configuration
+            # 4. Inject Fastboot and USB support
             ./scripts/config --enable CONFIG_USB
             ./scripts/config --enable CONFIG_USB_MUSB_GADGET
             ./scripts/config --enable CONFIG_USB_MUSB_SUNXI
