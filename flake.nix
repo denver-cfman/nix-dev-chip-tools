@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    # Declaratively pull the flashing tools repository
     chip-tools-src = {
       url = "github:joelguittet/chip-tools";
       flake = false;
@@ -19,26 +18,71 @@
           config = { allowUnfree = true; };
         };
 
-        # Package the tools into the Nix store and safely isolate path lookups
+        # 1. Integrated U-Boot derivation configured for cross-compilation
+        uboot-chip = let 
+          # Pull the armv7l-linux cross-compilation package set natively from Nixpkgs
+          armPkgs = import nixpkgs { crossSystem = { system = "armv7l-linux"; }; };
+        in armPkgs.stdenv.mkDerivation {
+          pname = "uboot-chip";
+          version = "2023.10";
+          
+          src = pkgs.fetchurl {
+            url = "https://ftp.denx.de/pub/u-boot/u-boot-2023.10.tar.bz2";
+            hash = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA=";
+          };
+
+          nativeBuildInputs = [ 
+            pkgs.buildPackages.stdenv.cc 
+            pkgs.buildPackages.bison 
+            pkgs.buildPackages.flex 
+            pkgs.buildPackages.bc 
+            pkgs.buildPackages.swig
+            pkgs.buildPackages.pkg-config
+            pkgs.buildPackages.openssl
+            (pkgs.buildPackages.python3.withPackages (ps: [ ps.setuptools ]))
+          ];
+
+          makeFlags = [
+            "HOSTCC=gcc"
+            "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
+            "HOSTCFLAGS=-I${pkgs.buildPackages.openssl.dev}/include"
+            "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
+          ];
+
+          configurePhase = ''
+            runHook preConfigure
+            make CHIP_defconfig $makeFlags
+            runHook postConfigure
+          '';
+
+          buildPhase = ''
+            runHook preBuild
+            patchShebangs tools/
+            make -j$(nproc) $makeFlags
+            runHook postBuild
+          '';
+          
+          installPhase = ''
+            mkdir -p $out
+            cp u-boot-sunxi-with-spl.bin $out/
+          '';
+        };
+
+        # 2. Existing chip-tools packaging block
         chip-tools = pkgs.stdenv.mkDerivation {
           pname = "chip-tools";
           version = "unstable";
           src = chip-tools-src;
 
-          # makeWrapper is required to safely wrap executables with context variables
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
           installPhase = ''
             mkdir -p $out/share/chip-tools
-            
-            # Copy all files (including the crucial bin/ firmware binaries) into a stable location
             cp -r * $out/share/chip-tools/
-            
-            # Create our binary directory that will map to the user's PATH
             mkdir -p $out/bin
-            
-            # Wrap the scripts so that they always execute from the context of their asset directory
-            for script in $out/share/chip-tools/*.sh; do
+  
+            for script in $out/share/chip-tools/*.sh;
+            do
               basename=$(basename "$script")
               makeWrapper "$script" "$out/bin/$basename" \
                 --run "cd $out/share/chip-tools"
@@ -46,39 +90,56 @@
           '';
 
           postFixup = ''
-            # Fix shebangs on the source scripts inside our share directory
             patchShebangs $out/share/chip-tools/*.sh
           '';
         };
       in
       {
-        # Expose the packaged tools as the default package for this flake
-        packages.default = chip-tools;
+        # Expose both targets via 'nix build' outputs if needed
+        packages = {
+          default = chip-tools;
+          uboot = uboot-chip;
+        };
 
         devShells.default = assert pkgs.stdenv.hostPlatform.system != "aarch64-darwin" || builtins.throw "❌ Error: chip-tools does not support aarch64-darwin. It requires a Linux platform for raw USB flashing tooling.";
           pkgs.mkShell {
             name = "chip-tools-env";
-
-            # Tools required to support the flashing utilities and environment
+            
             nativeBuildInputs = with pkgs; [
               git
               curl
-              sunxi-tools      # Crucial: Provides 'sunxi-fel' for flashing Allwinner SoCs
-              android-tools    # Provides 'fastboot' often invoked by Allwinner flash scripts
-              picocom          # Reliable serial console emulator for testing UART console (115200 baud)
-              libusb1          # Essential backend dependency for sunxi-fel communicating over USB
+              sunxi-tools
+              android-tools
+              picocom
+              libusb1
               pkg-config
               bashInteractive
               coreutils
               gnused
               gawk
-              chip-tools       # Injects your freshly wrapped & patched flash scripts into your PATH
+              chip-tools
             ];
 
             shellHook = ''
               echo "========================================================="
               echo "  ⚡ C.H.I.P. Hardware Tools Dev Environment Loaded ⚡  "
               echo "========================================================="
+              
+              echo "🔨 Ensuring local U-Boot assets are built and split..."
+              mkdir -p ./bin
+              
+              # Symlink or copy the compiled binary directly out of the Nix store
+              UBOOT_SRC="${uboot-chip}/u-boot-sunxi-with-spl.bin"
+              
+              # Automatically split the artifacts directly into your workspace's ./bin directory
+              if [ -f "$UBOOT_SRC" ]; then
+                dd if="$UBOOT_SRC" of=./bin/sunxi-spl.bin bs=1k count=32 status=none
+                dd if="$UBOOT_SRC" of=./bin/uboot.bin bs=1k skip=32 status=none
+                echo "✅ Staged U-Boot binaries successfully in ./bin/!"
+              else
+                echo "❌ Error: Compiled U-Boot asset not found in Nix store."
+              fi
+
               echo "✅ Flashing scripts are cleanly patched and ready in your PATH!"
               echo ""
               echo "👉 Run them directly from anywhere:"
