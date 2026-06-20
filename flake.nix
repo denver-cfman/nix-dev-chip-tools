@@ -50,25 +50,29 @@
           
           configurePhase = ''
             runHook preConfigure
-            
-            # 1. CRITICAL: Fix the shebangs so Nix can find the interpreters in the sandbox
             patchShebangs scripts/
-            
-            # 2. Fix the build script error
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             
-            # 3. Load the base config
+            # Load base config
             make CHIP_defconfig $makeFlags
             
-            # 4. Inject Fastboot and USB support
-            ./scripts/config --enable CONFIG_USB
-            ./scripts/config --enable CONFIG_USB_MUSB_GADGET
-            ./scripts/config --enable CONFIG_USB_MUSB_SUNXI
-            ./scripts/config --enable CONFIG_USB_FUNCTION_FASTBOOT
-            ./scripts/config --enable CONFIG_CMD_FASTBOOT
-            ./scripts/config --enable CONFIG_FASTBOOT_FLASH
-            ./scripts/config --enable CONFIG_FASTBOOT_FLASH_NAND
+            # Append your required NAND/UBI support configuration directly
+            cat <<EOF >> .config
+          CONFIG_USB=y
+          CONFIG_USB_MUSB_GADGET=y
+          CONFIG_USB_MUSB_SUNXI=y
+          CONFIG_USB_FUNCTION_FASTBOOT=y
+          CONFIG_CMD_FASTBOOT=y
+          CONFIG_FASTBOOT_FLASH=y
+          CONFIG_FASTBOOT_FLASH_NAND=y
+          CONFIG_CMD_NAND=y
+          CONFIG_CMD_MTD=y
+          CONFIG_MTD_UBI=y
+          CONFIG_CMD_UBI=y
+          EOF
             
+            # Ensure the config is finalized
+            make olddefconfig $makeFlags
             runHook postConfigure
           '';
 
