@@ -20,7 +20,6 @@
 
         # 1. Integrated U-Boot derivation configured for cross-compilation
         uboot-chip = let 
-          # Pull the armv7l-linux cross-compilation package set natively from Nixpkgs
           armPkgs = import nixpkgs { inherit system; crossSystem = { system = "armv7l-linux"; }; };
         in armPkgs.stdenv.mkDerivation {
           pname = "uboot-chip";
@@ -51,6 +50,8 @@
 
           configurePhase = ''
             runHook preConfigure
+            # FIX: Hot-patch older U-Boot device tree bindings to support modern SWIG 4.3.0+
+            sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             make CHIP_defconfig $makeFlags
             runHook postConfigure
           '';
@@ -95,7 +96,6 @@
         };
       in
       {
-        # Expose both targets via 'nix build' outputs if needed
         packages = {
           default = chip-tools;
           uboot = uboot-chip;
@@ -129,10 +129,8 @@
               echo "🔨 Ensuring local U-Boot assets are built and split..."
               mkdir -p ./bin
               
-              # Symlink or copy the compiled binary directly out of the Nix store
               UBOOT_SRC="${uboot-chip}/u-boot-sunxi-with-spl.bin"
               
-              # Automatically split the artifacts directly into your workspace's ./bin directory
               if [ -f "$UBOOT_SRC" ]; then
                 dd if="$UBOOT_SRC" of=./bin/sunxi-spl.bin bs=1k count=32 status=none
                 dd if="$UBOOT_SRC" of=./bin/uboot.bin bs=1k skip=32 status=none
