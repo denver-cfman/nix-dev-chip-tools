@@ -127,30 +127,87 @@
               echo "========================================================="
               
               echo "🔨 Ensuring local U-Boot assets are built and split..."
-              
-              # Set up a clean staging workspace inside your current repository block
               mkdir -p ./images
               
               UBOOT_SRC="${uboot-chip}/u-boot-sunxi-with-spl.bin"
               
               if [ -f "$UBOOT_SRC" ]; then
-                # 1. Carve out the first 32KB block for the secondary program loader (SPL)
                 dd if="$UBOOT_SRC" of=./images/sunxi-spl.bin bs=1k count=32 status=none
-                
-                # 2. Carve out the remaining payload layout for the final U-Boot image
                 dd if="$UBOOT_SRC" of=./images/u-boot-dtb.bin bs=1k skip=32 status=none
-                
                 echo "✅ Automatically sliced and staged U-Boot binaries inside ./images/!"
               else
                 echo "❌ Error: Compiled U-Boot asset source not found in Nix store."
               fi
 
+              # =====================================================================
+              # 📦 AUTOMATED ROOTFS PACKAGING HELPER
+              # =====================================================================
+              chip-pack-rootfs() {
+                if [ -z "$1" ]; then
+                  echo "❌ Error: Please specify the path to your rootfs tarball."
+                  echo "   Usage: chip-pack-rootfs <path/to/nixos-rootfs.tar.xz>"
+                  return 1
+                fi
+
+                local TARBALL="$1"
+                if [ ! -f "$TARBALL" ]; then
+                  echo "❌ Error: Archive file not found at: $TARBALL"
+                  return 1
+                fi
+
+                echo "🧹 Making sure old workspaces are clean..."
+                sudo rm -rf ./rootfs-unpack
+                rm -f rootfs.ubifs ubinize.cfg
+
+                echo "📂 Creating temporary staging folder and unpacking tarball..."
+                mkdir -p ./rootfs-unpack
+                
+                # NOTE: Omitting explicit compression flags (-z/-J) lets modern GNU tar 
+                # auto-detect whether the file is gzip or xz based on its binary magic header.
+                sudo tar -C ./rootfs-unpack -xf "$TARBALL"
+
+                echo "🏗️  Compiling intermediate UBIFS volume layer..."
+                sudo mkfs.ubifs \
+                  -r ./rootfs-unpack \
+                  -m 16384 \
+                  -e 2064384 \
+                  -c 2000 \
+                  -x lzo \
+                  -o ./rootfs.ubifs
+
+                echo "🧹 Removing unpack directory..."
+                sudo rm -rf ./rootfs-unpack
+
+                echo "📝 Generating container structure manifest (ubinize.cfg)..."
+                cat <<EOF > ubinize.cfg
+[rootfs_volume]
+mode=ubi
+image=rootfs.ubifs
+vol_id=0
+vol_type=dynamic
+vol_name=rootfs
+vol_flags=autoresize
+EOF
+
+                echo "🚀 Packing intermediate layout into final flashable container..."
+                ubinize -o ./images/rootfs.ubi -m 16384 -p 2097152 -s 16384 ubinize.cfg
+
+                echo "🧹 Cleaning up intermediate configuration files..."
+                rm -f rootfs.ubifs ubinize.cfg
+
+                echo "========================================================="
+                echo "✅ Successfully completed! Staged artifacts:"
+                ls -lh ./images
+                echo "========================================================="
+              }
+
               echo "✅ Flashing and file system tools (mtdutils) are ready in your PATH!"
               echo ""
-              echo "👉 Staging checklist layout:"
-              echo "   ./images/sunxi-spl.bin  (Generated)"
-              echo "   ./images/u-boot-dtb.bin (Generated)"
-              echo "   ./images/rootfs.ubi     (Awaiting your build)"
+              echo "👉 To unpack your tarball and automatically generate 'rootfs.ubi', run:"
+              echo "   chip-pack-rootfs ../chip/nixos-chip-rootfs.tar.xz"
+              echo ""
+              echo "👉 Once finalized, run the flashing script with the device in FEL mode:"
+              echo "   sudo \$(which chip-flash-chip.sh) ./images"
               echo "========================================================="
             '';
           };
