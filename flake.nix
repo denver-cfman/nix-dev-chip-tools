@@ -50,7 +50,6 @@
 
           configurePhase = ''
             runHook preConfigure
-            # FIX: Hot-patch older U-Boot device tree bindings to support modern SWIG 4.3.0+
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             make CHIP_defconfig $makeFlags
             runHook postConfigure
@@ -127,26 +126,30 @@
               echo "========================================================="
               
               echo "🔨 Ensuring local U-Boot assets are built and split..."
-              mkdir -p ./bin
+              
+              # Set up a clean staging workspace inside your current repository block
+              mkdir -p ./images
               
               UBOOT_SRC="${uboot-chip}/u-boot-sunxi-with-spl.bin"
               
               if [ -f "$UBOOT_SRC" ]; then
-                dd if="$UBOOT_SRC" of=./bin/sunxi-spl.bin bs=1k count=32 status=none
-                dd if="$UBOOT_SRC" of=./bin/uboot.bin bs=1k skip=32 status=none
-                echo "✅ Staged U-Boot binaries successfully in ./bin/!"
+                # 1. Carve out the first 32KB block for the secondary program loader (SPL)
+                dd if="$UBOOT_SRC" of=./images/sunxi-spl.bin bs=1k count=32 status=none
+                
+                # 2. Carve out the remaining payload layout for the final U-Boot image
+                dd if="$UBOOT_SRC" of=./images/u-boot-dtb.bin bs=1k skip=32 status=none
+                
+                echo "✅ Automatically sliced and staged U-Boot binaries inside ./images/!"
               else
-                echo "❌ Error: Compiled U-Boot asset not found in Nix store."
+                echo "❌ Error: Compiled U-Boot asset source not found in Nix store."
               fi
 
-              echo "✅ Flashing scripts are cleanly patched and ready in your PATH!"
+              echo "✅ Flashing and file system tools (mtdutils) are ready in your PATH!"
               echo ""
-              echo "👉 Run them directly from anywhere:"
-              echo "   chip-flash-chip.sh"
-              echo "   chip-flash-chip-pro.sh"
-              echo ""
-              echo "👉 To interface with your hardware over serial:"
-              echo "   picocom -b 115200 /dev/ttyUSB0"
+              echo "👉 Staging checklist layout:"
+              echo "   ./images/sunxi-spl.bin  (Generated)"
+              echo "   ./images/u-boot-dtb.bin (Generated)"
+              echo "   ./images/rootfs.ubi     (Awaiting your build)"
               echo "========================================================="
             '';
           };
