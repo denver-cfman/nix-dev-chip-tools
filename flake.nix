@@ -50,8 +50,21 @@
 
           configurePhase = ''
             runHook preConfigure
+            # Fix the build script error 
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
+            
+            # Load the base config
             make CHIP_defconfig $makeFlags
+            
+            # Inject Fastboot and USB support configuration
+            ./scripts/config --enable CONFIG_USB
+            ./scripts/config --enable CONFIG_USB_MUSB_GADGET
+            ./scripts/config --enable CONFIG_USB_MUSB_SUNXI
+            ./scripts/config --enable CONFIG_USB_FUNCTION_FASTBOOT
+            ./scripts/config --enable CONFIG_CMD_FASTBOOT
+            ./scripts/config --enable CONFIG_FASTBOOT_FLASH
+            ./scripts/config --enable CONFIG_FASTBOOT_FLASH_NAND
+            
             runHook postConfigure
           '';
 
