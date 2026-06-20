@@ -110,6 +110,7 @@
               curl
               sunxi-tools
               android-tools
+              mtdutils
               picocom
               libusb1
               pkg-config
