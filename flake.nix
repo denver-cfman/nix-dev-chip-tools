@@ -56,20 +56,26 @@
             # Load base config
             make CHIP_defconfig $makeFlags
             
-            # Append your required NAND/UBI support configuration directly
-            cat <<EOF >> .config
-          CONFIG_USB=y
-          CONFIG_USB_MUSB_GADGET=y
-          CONFIG_USB_MUSB_SUNXI=y
-          CONFIG_USB_FUNCTION_FASTBOOT=y
-          CONFIG_CMD_FASTBOOT=y
-          CONFIG_FASTBOOT_FLASH=y
-          CONFIG_FASTBOOT_FLASH_NAND=y
-          CONFIG_CMD_NAND=y
-          CONFIG_CMD_MTD=y
-          CONFIG_MTD_UBI=y
-          CONFIG_CMD_UBI=y
-          EOF
+            # Append your required NAND/UBI support configuration
+              cat <<EOF >> .config
+            # Hardware MTD support (REQUIRED for UBI)
+            CONFIG_MTD=y
+            CONFIG_MTD_RAW_NAND=y
+            CONFIG_CMD_MTD=y
+            
+            # UBI support
+            CONFIG_MTD_UBI=y
+            CONFIG_CMD_UBI=y
+            
+            # USB/Fastboot support
+            CONFIG_USB=y
+            CONFIG_USB_MUSB_GADGET=y
+            CONFIG_USB_MUSB_SUNXI=y
+            CONFIG_USB_FUNCTION_FASTBOOT=y
+            CONFIG_CMD_FASTBOOT=y
+            CONFIG_FASTBOOT_FLASH=y
+            CONFIG_FASTBOOT_FLASH_NAND=y
+            EOF
             
             # Ensure the config is finalized
             make olddefconfig $makeFlags
