@@ -111,6 +111,7 @@
               android-tools
               usbutils
               mtdutils
+              ubootTools
               picocom
               libusb1
               pkg-config
