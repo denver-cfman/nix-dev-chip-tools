@@ -109,6 +109,7 @@
               curl
               sunxi-tools
               android-tools
+              usbutils
               mtdutils
               picocom
               libusb1
