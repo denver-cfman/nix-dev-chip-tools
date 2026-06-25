@@ -72,7 +72,12 @@
           '';
 
           buildPhase = ''
+            runHook preBuild
+            patchShebangs tools/
+            # The 'olddefconfig' is critical here to stop the interactive prompt loop
+            make olddefconfig $makeFlags
             make -j$(nproc) $makeFlags
+            runHook postBuild
           '';
 
           installPhase = ''
