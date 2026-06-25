@@ -55,20 +55,19 @@
             # 1. Start with the base config
             make CHIP_defconfig $makeFlags
             
-            # 2. Add features. Using 'scripts/config --enable' is safer 
-            # than appending to .config because it handles dependencies properly.
-            ./scripts/config --enable CONFIG_MTD
-            ./scripts/config --enable CONFIG_MTD_RAW_NAND
-            ./scripts/config --enable CONFIG_CMD_MTD
-            ./scripts/config --enable CONFIG_MTD_UBI
-            ./scripts/config --enable CONFIG_CMD_UBI
-            ./scripts/config --enable CONFIG_USB_FUNCTION_FASTBOOT
-            ./scripts/config --enable CONFIG_CMD_FASTBOOT
-            ./scripts/config --enable CONFIG_FASTBOOT_FLASH
-            ./scripts/config --enable CONFIG_FASTBOOT_FLASH_NAND
-            ./scripts/config --set-val SYS_NAND_BLOCK_SIZE 0x40000
-            ./scripts/config --set-val SYS_NAND_PAGE_SIZE 0x4000
-            ./scripts/config --set-val SYS_NAND_OOBSIZE 0x100
+              ./scripts/config --enable CONFIG_NAND
+              ./scripts/config --enable CONFIG_NAND_SUNXI
+              ./scripts/config --enable CONFIG_SYS_NAND_BLOCK_SIZE
+              ./scripts/config --set-val SYS_NAND_BLOCK_SIZE 0x40000
+              ./scripts/config --enable CONFIG_SYS_NAND_PAGE_SIZE
+              ./scripts/config --set-val SYS_NAND_PAGE_SIZE 0x4000
+              ./scripts/config --enable CONFIG_SYS_NAND_OOBSIZE
+              ./scripts/config --set-val SYS_NAND_OOBSIZE 0x100
+              
+              # Ensure MTD and UBI are linked to the NAND driver
+              ./scripts/config --enable CONFIG_MTD
+              ./scripts/config --enable CONFIG_MTD_RAW_NAND
+              ./scripts/config --enable CONFIG_MTD_UBI
             # 3. Finalize: this resolves dependencies and kills the interactive loop
             make olddefconfig $makeFlags
           '';
