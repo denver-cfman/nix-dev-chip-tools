@@ -67,6 +67,8 @@
             ./scripts/config --enable CONFIG_FASTBOOT_FLASH
             ./scripts/config --enable CONFIG_FASTBOOT_FLASH_NAND
             ./scripts/config --set-val SYS_NAND_BLOCK_SIZE 0x40000
+            ./scripts/config --set-val SYS_NAND_PAGE_SIZE 0x4000
+            ./scripts/config --set-val SYS_NAND_OOBSIZE 0x100
             # 3. Finalize: this resolves dependencies and kills the interactive loop
             make olddefconfig $makeFlags
           '';
