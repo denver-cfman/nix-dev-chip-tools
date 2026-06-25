@@ -28,8 +28,25 @@
             url = "https://ftp.denx.de/pub/u-boot/u-boot-2023.10.tar.bz2";
             hash = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA=";
           };
-          nativeBuildInputs = [ pkgs.buildPackages.bison pkgs.buildPackages.flex pkgs.buildPackages.bc pkgs.buildPackages.swig pkgs.buildPackages.pkg-config pkgs.buildPackages.openssl (pkgs.buildPackages.python3.withPackages (ps: [ ps.setuptools ])) ];
-          makeFlags = [ "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}" ];
+          nativeBuildInputs = [ 
+            pkgs.buildPackages.gcc       # Explicitly add GCC
+            pkgs.buildPackages.binutils  # Explicitly add Binutils
+            pkgs.buildPackages.bison 
+            pkgs.buildPackages.flex 
+            pkgs.buildPackages.bc 
+            pkgs.buildPackages.swig
+            pkgs.buildPackages.pkg-config
+            pkgs.buildPackages.openssl
+            (pkgs.buildPackages.python3.withPackages (ps: [ ps.setuptools ]))
+          ];
+
+          makeFlags = [
+            "HOSTCC=${pkgs.buildPackages.stdenv.cc.targetPrefix}gcc" # Explicitly define HOSTCC
+            "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
+            "HOSTCFLAGS=-I${pkgs.buildPackages.openssl.dev}/include"
+            "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
+          ];
+
 
           configurePhase = ''
             patchShebangs scripts/
