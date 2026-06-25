@@ -24,71 +24,40 @@
         in armPkgs.stdenv.mkDerivation {
           pname = "uboot-chip";
           version = "2023.10";
-          
           src = pkgs.fetchurl {
             url = "https://ftp.denx.de/pub/u-boot/u-boot-2023.10.tar.bz2";
             hash = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA=";
           };
+          nativeBuildInputs = [ pkgs.buildPackages.bison pkgs.buildPackages.flex pkgs.buildPackages.bc pkgs.buildPackages.swig pkgs.buildPackages.pkg-config pkgs.buildPackages.openssl (pkgs.buildPackages.python3.withPackages (ps: [ ps.setuptools ])) ];
+          makeFlags = [ "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}" ];
 
-          nativeBuildInputs = [ 
-            pkgs.buildPackages.stdenv.cc 
-            pkgs.buildPackages.bison 
-            pkgs.buildPackages.flex 
-            pkgs.buildPackages.bc 
-            pkgs.buildPackages.swig
-            pkgs.buildPackages.pkg-config
-            pkgs.buildPackages.openssl
-            (pkgs.buildPackages.python3.withPackages (ps: [ ps.setuptools ]))
-          ];
-
-          makeFlags = [
-            "HOSTCC=gcc"
-            "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
-            "HOSTCFLAGS=-I${pkgs.buildPackages.openssl.dev}/include"
-            "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
-          ];
-          
           configurePhase = ''
-            runHook preConfigure
             patchShebangs scripts/
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             
-            # Load base config
+            # 1. Start with the base config
             make CHIP_defconfig $makeFlags
             
-            # Append your required NAND/UBI support configuration
-              cat <<EOF >> .config
-            # Hardware MTD support (REQUIRED for UBI)
-            CONFIG_MTD=y
-            CONFIG_MTD_RAW_NAND=y
-            CONFIG_CMD_MTD=y
+            # 2. Add features. Using 'scripts/config --enable' is safer 
+            # than appending to .config because it handles dependencies properly.
+            ./scripts/config --enable CONFIG_MTD
+            ./scripts/config --enable CONFIG_MTD_RAW_NAND
+            ./scripts/config --enable CONFIG_CMD_MTD
+            ./scripts/config --enable CONFIG_MTD_UBI
+            ./scripts/config --enable CONFIG_CMD_UBI
+            ./scripts/config --enable CONFIG_USB_FUNCTION_FASTBOOT
+            ./scripts/config --enable CONFIG_CMD_FASTBOOT
+            ./scripts/config --enable CONFIG_FASTBOOT_FLASH
+            ./scripts/config --enable CONFIG_FASTBOOT_FLASH_NAND
             
-            # UBI support
-            CONFIG_MTD_UBI=y
-            CONFIG_CMD_UBI=y
-            
-            # USB/Fastboot support
-            CONFIG_USB=y
-            CONFIG_USB_MUSB_GADGET=y
-            CONFIG_USB_MUSB_SUNXI=y
-            CONFIG_USB_FUNCTION_FASTBOOT=y
-            CONFIG_CMD_FASTBOOT=y
-            CONFIG_FASTBOOT_FLASH=y
-            CONFIG_FASTBOOT_FLASH_NAND=y
-            EOF
-            
-            # Ensure the config is finalized
+            # 3. Finalize: this resolves dependencies and kills the interactive loop
             make olddefconfig $makeFlags
-            runHook postConfigure
           '';
 
           buildPhase = ''
-            runHook preBuild
-            patchShebangs tools/
             make -j$(nproc) $makeFlags
-            runHook postBuild
           '';
-          
+
           installPhase = ''
             mkdir -p $out
             cp u-boot-sunxi-with-spl.bin $out/
