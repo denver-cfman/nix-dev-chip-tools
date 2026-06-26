@@ -40,11 +40,6 @@
             (pkgs.buildPackages.python3.withPackages (ps: [ ps.setuptools ]))
           ];
 
-          postPatch = ''
-              # Find the nand node and set it to 'okay' in the dts source
-              sed -i '/nand@01c03000/,/};/ s/status = "disabled"/status = "okay"/' arch/arm/dts/sun5i-r8-chip.dts
-            '';
-
           makeFlags = [
             "HOSTCC=${pkgs.buildPackages.stdenv.cc.targetPrefix}gcc" # Explicitly define HOSTCC
             "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
@@ -52,6 +47,10 @@
             "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
           ];
 
+          postPatch = ''
+              # Find the nand node and set it to 'okay' in the dts source
+              sed -i '/nand@01c03000/,/};/ s/status = "disabled"/status = "okay"/' arch/arm/dts/sun5i-r8-chip.dts
+            '';
 
           configurePhase = ''
             patchShebangs scripts/
