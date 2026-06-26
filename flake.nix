@@ -230,7 +230,7 @@ EOF
               echo "   chip-pack-rootfs nixos-chip-*-rootfs.tar.xz"
               echo ""
               echo "👉 Once images are built, put CHIP into FTL mode, and check for usb plug in:"
-              echo "   lsusb | grep -i "1f3a"
+              echo "   lsusb | grep -i '1f3a'"
               echo ""
               echo "👉 Once in FTL mode, run the flash script:"
               echo "   sudo find /nix/store/ -iname *u-boot-sunxi-with-spl*"
