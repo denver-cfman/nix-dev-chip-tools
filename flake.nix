@@ -17,8 +17,6 @@
           inherit system;
           config = { allowUnfree = true; };
         };
-
-        # 1. Integrated U-Boot derivation configured for cross-compilation
         uboot-chip = let 
           armPkgs = import nixpkgs { inherit system; crossSystem = { system = "armv7l-linux"; }; };
         in armPkgs.stdenv.mkDerivation {
@@ -29,8 +27,8 @@
             hash = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA=";
           };
           nativeBuildInputs = [ 
-            pkgs.buildPackages.gcc       # Explicitly add GCC
-            pkgs.buildPackages.binutils  # Explicitly add Binutils
+            pkgs.buildPackages.gcc
+            pkgs.buildPackages.binutils
             pkgs.buildPackages.bison 
             pkgs.buildPackages.flex 
             pkgs.buildPackages.bc 
@@ -41,14 +39,13 @@
           ];
 
           makeFlags = [
-            "HOSTCC=${pkgs.buildPackages.stdenv.cc.targetPrefix}gcc" # Explicitly define HOSTCC
+            "HOSTCC=${pkgs.buildPackages.stdenv.cc.targetPrefix}gcc"
             "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
             "HOSTCFLAGS=-I${pkgs.buildPackages.openssl.dev}/include"
             "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
           ];
 
           postPatch = ''
-              # Find the nand node and set it to 'okay' in the dts source
               sed -i '/nand@01c03000/,/};/ s/status = "disabled"/status = "okay"/' arch/arm/dts/sun5i-r8-chip.dts
             '';
 
@@ -56,7 +53,6 @@
             patchShebangs scripts/
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             
-            # 1. Start with the base config
             make CHIP_defconfig $makeFlags
             
               ./scripts/config --enable CONFIG_NAND
@@ -67,22 +63,19 @@
               ./scripts/config --set-val SYS_NAND_PAGE_SIZE 0x4000
               ./scripts/config --enable CONFIG_SYS_NAND_OOBSIZE
               ./scripts/config --set-val SYS_NAND_OOBSIZE 0x100
-              
-              # Ensure MTD and UBI are linked to the NAND driver
               ./scripts/config --enable CONFIG_MTD
               ./scripts/config --enable CONFIG_MTD_RAW_NAND
               ./scripts/config --enable CONFIG_MTD_UBI
               ./scripts/config --set-str DEFAULT_DEVICE_TREE "sun5i-r8-chip"
               echo "CONFIG_OF_LIST=\"sun5i-r8-chip\"" >> .config
               echo "CONFIG_OF_OVERLAY_FASTBOOT_ERT=y" >> .config
-            # 3. Finalize: this resolves dependencies and kills the interactive loop
+
             make olddefconfig $makeFlags
           '';
 
           buildPhase = ''
             runHook preBuild
             patchShebangs tools/
-            # The 'olddefconfig' is critical here to stop the interactive prompt loop
             make olddefconfig $makeFlags
             make -j$(nproc) $makeFlags
             runHook postBuild
