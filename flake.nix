@@ -227,16 +227,13 @@ EOF
               echo "✅ Flashing and file system tools (mtdutils) are ready in your PATH!"
               echo ""
               echo "👉 To unpack your tarball and automatically generate 'rootfs.ubi', run:"
-              echo "   chip-pack-rootfs ../chip/nixos-chip-rootfs.tar.xz"
-              echo ""
-              echo "👉 Once finalized, run the flashing script with the device in FEL mode:"
-              echo "   sudo \$(which chip-flash-chip.sh) ./images"
+              echo "   chip-pack-rootfs nixos-chip-*-rootfs.tar.xz"
               echo ""
               echo "👉 Once images are built, put CHIP into FTL mode, and check for usb plug in:"
               echo "   lsusb | grep -i "1f3a"
               echo ""
               echo "👉 Once in FTL mode, run the flash script:"
-              echo "   sudo -E $(which chip-flash-chip.sh) $PWD/images
+              echo "   sudo find /nix/store/ -iname *u-boot-sunxi-with-spl*"
               echo "========================================================="
             '';
           };
