@@ -68,6 +68,7 @@
               ./scripts/config --enable CONFIG_MTD
               ./scripts/config --enable CONFIG_MTD_RAW_NAND
               ./scripts/config --enable CONFIG_MTD_UBI
+              ./scripts/config --set-str DEFAULT_DEVICE_TREE "sun5i-r8-chip"
               echo "CONFIG_OF_LIST=\"sun5i-r8-chip\"" >> .config
               echo "CONFIG_OF_OVERLAY_FASTBOOT_ERT=y" >> .config
             # 3. Finalize: this resolves dependencies and kills the interactive loop
