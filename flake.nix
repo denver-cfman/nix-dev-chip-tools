@@ -46,18 +46,18 @@
           ];
 
           postPatch = ''
-            # Ensure the status is set to 'okay' in the file
-            sed -i 's/status = "disabled"/status = "okay"/g' arch/arm/dts/sun5i-r8-chip.dts
-            
-            # Append the NAND node definition if it's not present (this is a safeguard)
-            grep -q "nand@01c03000" arch/arm/dts/sun5i-a13.dtsi || echo '
-              nand: nand@01c03000 {
-                  compatible = "allwinner,sun4i-a10-nand";
-                  reg = <0x01c03000 0x1000>;
-                  interrupts = <37>;
-                  clocks = <&ccu 55>;
-                  status = "okay";
-              };' >> arch/arm/dts/sun5i-a13.dtsi
+            # Use sed to find the 'soc' block and insert the node just before the closing brace
+            # This avoids syntax errors caused by appending to the end of the file
+            sed -i '/soc {/,/};/ {
+              /};/i \
+              nand: nand@01c03000 {\
+                  compatible = "allwinner,sun4i-a10-nand";\
+                  reg = <0x01c03000 0x1000>;\
+                  interrupts = <37>;\
+                  clocks = <&ccu 55>;\
+                  status = "okay";\
+              };
+            }' arch/arm/dts/sun5i-a13.dtsi
           '';
 
           configurePhase = ''
