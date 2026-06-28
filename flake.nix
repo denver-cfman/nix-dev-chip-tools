@@ -72,6 +72,7 @@
               ./scripts/config --enable CONFIG_MTD_RAW_NAND
               ./scripts/config --enable CONFIG_MTD_UBI
               ./scripts/config --set-str DEFAULT_DEVICE_TREE "sun5i-r8-chip"
+              ./scripts/config --set-val CONFIG_SYS_MAX_NAND_DEVICE 1
               echo "CONFIG_OF_LIST=\"sun5i-r8-chip\"" >> .config
               echo "CONFIG_OF_OVERLAY_FASTBOOT_ERT=y" >> .config
 
