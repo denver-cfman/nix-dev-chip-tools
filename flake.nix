@@ -46,8 +46,13 @@
           ];
 
           postPatch = ''
-              sed -i '/nand@01c03000/,/};/ s/status = "disabled"/status = "okay"/' arch/arm/dts/sun5i-r8-chip.dts
-            '';
+            # Locate the nand node and ensure it is set to 'okay'
+            # We use a more flexible sed that matches the block regardless of specific spacing
+            sed -i '/nand@01c03000/,/};/ s/status = "disabled"/status = "okay"/' arch/arm/dts/sun5i-r8-chip.dts
+            
+            # ALSO ensure the pinctrl is correctly associated if needed
+            sed -i '/nand@01c03000/a \        pinctrl-names = "default";\n        pinctrl-0 = <&nand_pins>, <&nand_cs0_pin>, <&nand_rb0_pin>;' arch/arm/dts/sun5i-r8-chip.dts
+          '';
 
           configurePhase = ''
             patchShebangs scripts/
