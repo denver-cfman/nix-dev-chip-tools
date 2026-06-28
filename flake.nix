@@ -229,8 +229,11 @@ EOF
               echo "👉 Once images are built, put CHIP into FTL mode, and check for usb plug in:"
               echo "   lsusb | grep -i '1f3a'"
               echo ""
+              echo "👉 If you have run this build env multiple times, ensure you are using the most current u-boot sunxi:"
+              echo "   sudo nix-collect-garbage"
+              echo ""
               echo "👉 Once in FTL mode, run the flash script:"
-              echo "   sudo find /nix/store/ -iname *u-boot-sunxi-with-spl*"
+              echo "   sudo sunxi-fel uboot $(sudo find /nix/store/ -iname *u-boot-sunxi-with-spl*)"
               echo "========================================================="
             '';
           };
