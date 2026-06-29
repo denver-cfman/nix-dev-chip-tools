@@ -115,7 +115,7 @@
 
           buildPhase = ''
             # The environment needs to know where the cross-compiler is
-            export CROSS_COMPILE=${stdenv.cc.targetPrefix}
+            export CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}
             
             # Perform the actual build
             # -j$NIX_BUILD_CORES enables parallel compilation
