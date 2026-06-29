@@ -22,9 +22,11 @@
         in armPkgs.stdenv.mkDerivation {
           pname = "uboot-chip";
           version = "2023.10";
-          src = pkgs.fetchurl {
-            url = "https://ftp.denx.de/pub/u-boot/u-boot-2023.10.tar.bz2";
-            hash = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA=";
+          src = pkgs.fetchFromGitHub {
+            owner = "NextThingCo";
+            repo = "u-boot";
+            rev = "chip/stable";
+            hash = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA="; # Replace with actual hash after first run
           };
           nativeBuildInputs = [ 
             pkgs.buildPackages.gcc
