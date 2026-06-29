@@ -66,6 +66,7 @@
             cp ${chip-tools-src}/configs/CHIP_defconfig configs/CHIP_defconfig
             # 2. Load the C.H.I.P. config
             make CHIP_defconfig $makeFlags
+            make olddefconfig $makeFlags
             patchShebangs scripts/
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             
