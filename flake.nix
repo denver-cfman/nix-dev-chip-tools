@@ -65,56 +65,45 @@
             echo "/* Emptied by Nix build to bypass legacy USB-KBD issues */" > common/usb_kbd.c
           '';
 
-          configurePhase = ''
-              ### Debug
+            configurePhase = ''
               cd $(ls -d u-boot* | head -n 1)
-
+              
+              # 1. Start clean
               make distclean
+              
+              # 2. Load the base configuration
               make CHIP_defconfig $makeFlags
-              cat >> .config <<EOF
-              CONFIG_MTD=y
-              CONFIG_DM_MTD=y
-              CONFIG_MTD_RAW_NAND=y
-              CONFIG_NAND_SUNXI=y
-              CONFIG_SYS_NAND_BLOCK_SIZE=0x40000
-              CONFIG_SYS_NAND_PAGE_SIZE=0x4000
-              CONFIG_SYS_NAND_OOBSIZE=0x100
-              CONFIG_CMD_MTD=y
-              CONFIG_CMD_NAND=y
-              CONFIG_CMD_UBI=y
-              CONFIG_MTD_UBI=y
-              CONFIG_SYS_MAX_NAND_DEVICE=1
-              EOF
-
+              
+              # 3. Apply your custom changes
+              # Use the scripts/config tool to modify options instead of 'cat >>', 
+              # as it handles dependency checking correctly.
+              ./scripts/config --enable CONFIG_MTD
+              ./scripts/config --enable CONFIG_DM_MTD
+              ./scripts/config --enable CONFIG_MTD_RAW_NAND
+              ./scripts/config --enable CONFIG_NAND_SUNXI
+              ./scripts/config --set-val CONFIG_SYS_NAND_BLOCK_SIZE 0x40000
+              ./scripts/config --set-val CONFIG_SYS_NAND_PAGE_SIZE 0x4000
+              ./scripts/config --set-val CONFIG_SYS_NAND_OOBSIZE 0x100
+              ./scripts/config --enable CONFIG_CMD_MTD
+              ./scripts/config --enable CONFIG_CMD_NAND
+              ./scripts/config --enable CONFIG_CMD_UBI
+              ./scripts/config --enable CONFIG_MTD_UBI
+              ./scripts/config --set-val CONFIG_SYS_MAX_NAND_DEVICE 1
+            
+              # Disable bloated SPL features
               ./scripts/config --disable CONFIG_SPL_EFI_PARTITION
-              ./scripts/config --disable CONFIG_SPL_FIT_SIGNATURE
               ./scripts/config --disable CONFIG_SPL_FIT
-              ./scripts/config --disable CONFIG_SPL_LOAD_FIT
-              ./scripts/config --disable CONFIG_SPL_LIBCOMMON_SUPPORT
-              ./scripts/config --disable CONFIG_SPL_LIBDISK_SUPPORT
-              ./scripts/config --disable CONFIG_SPL_PRINTF
-              #./scripts/config --disable CONFIG_SPL_SERIAL_SUPPORT
               ./scripts/config --disable CONFIG_SPL_FRAMEWORK
-              ./scripts/config --disable CONFIG_SPL_BANNER_PRINT
-              ./scripts/config --disable CONFIG_SPL_SHA1
-              ./scripts/config --disable CONFIG_SPL_SHA256
-              ./scripts/config --disable CONFIG_SPL_IMAGE_SIGN_VERIFY
-              ./scripts/config --disable CONFIG_SPL_YMODEM_SUPPORT
               ./scripts/config --enable CONFIG_SPL_USE_TINY_PRINTF
+              ./scripts/config --disable CONFIG_SPL_YMODEM_SUPPORT
               ./scripts/config --disable CONFIG_SPL_NET
-
-              #./scripts/config --enable CONFIG_USB_KEYBOARD
-              ./scripts/config --enable CONFIG_USB_GADGET
-              ./scripts/config --enable CONFIG_USB_STORAGE
-              ./scripts/config --disable CONFIG_USB_KEYBOARD
-
-              cat .config
-
-              # Force a fail if it didn't work
-              grep "CONFIG_NAND_SUNXI=y" .config || { echo "❌ CONFIG_NAND_SUNXI not set!"; exit 1; }
-
-            make olddefconfig $makeFlags
-          '';
+            
+              # 4. Finalize the configuration to resolve dependencies
+              make olddefconfig $makeFlags
+              
+              # Verify one of your flags made it
+              grep "CONFIG_NAND_SUNXI=y" .config || exit 1
+            '';
 
           buildPhase = ''
             make -j$(nproc) $makeFlags
