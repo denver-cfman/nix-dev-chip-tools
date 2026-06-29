@@ -48,6 +48,8 @@
             "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
             "DEVICE_TREE=sun5i-r8-chip"
             "DTC=${pkgs.buildPackages.dtc}/bin/dtc"
+            "KCFLAGS=-Os -ffunction-sections -fdata-sections -fno-stack-protector -fno-common"
+            "KBUILD_CFLAGS+=-Wno-error"
           ];
 
           postPatch = ''
