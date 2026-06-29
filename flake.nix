@@ -115,6 +115,7 @@
 
           buildFlags = [
               "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
+              "ARCH=arm"
               "V=1" # This makes the build verbose so you can see exactly what fails
             ];
           
