@@ -49,41 +49,22 @@
           ];
 
           configurePhase = ''
-            make distclean
-            make CHIP_defconfig $makeFlags
-            cat >> .config <<EOF
-            CONFIG_MTD=y
-            CONFIG_DM_MTD=y
-            CONFIG_MTD_RAW_NAND=y
-            CONFIG_NAND_SUNXI=y
-            CONFIG_SYS_NAND_BLOCK_SIZE=0x40000
-            CONFIG_SYS_NAND_PAGE_SIZE=0x4000
-            CONFIG_SYS_NAND_OOBSIZE=0x100
-            CONFIG_CMD_MTD=y
-            CONFIG_CMD_NAND=y
-            CONFIG_CMD_UBI=y
-            CONFIG_MTD_UBI=y
-            CONFIG_SYS_MAX_NAND_DEVICE=1
-            EOF
-
-              ./scripts/config --enable CONFIG_NAND
-              ./scripts/config --enable CONFIG_NAND_SUNXI
-              ./scripts/config --enable CONFIG_MTD_RAW_NAND
-              ./scripts/config --enable CONFIG_SYS_NAND_SELF_INIT
-              ./scripts/config --enable CONFIG_SYS_NAND_BLOCK_SIZE
-              ./scripts/config --set-val SYS_NAND_BLOCK_SIZE 0x40000
-              ./scripts/config --enable CONFIG_SYS_NAND_PAGE_SIZE
-              ./scripts/config --set-val SYS_NAND_PAGE_SIZE 0x4000
-              ./scripts/config --enable CONFIG_SYS_NAND_OOBSIZE
-              ./scripts/config --set-val SYS_NAND_OOBSIZE 0x100
-              ./scripts/config --enable CONFIG_MTD
-              ./scripts/config --enable CONFIG_MTD_RAW_NAND
-              ./scripts/config --enable CONFIG_MTD_UBI
-              ./scripts/config --set-str DEFAULT_DEVICE_TREE "sun5i-r8-chip"
-              ./scripts/config --set-val CONFIG_SYS_MAX_NAND_DEVICE 1
-              echo "CONFIG_OF_LIST=\"sun5i-r8-chip\"" >> .config
-              echo "CONFIG_OF_OVERLAY_FASTBOOT_ERT=y" >> .config
-
+              make distclean
+              make CHIP_defconfig $makeFlags
+              cat >> .config <<EOF
+              CONFIG_MTD=y
+              CONFIG_DM_MTD=y
+              CONFIG_MTD_RAW_NAND=y
+              CONFIG_NAND_SUNXI=y
+              CONFIG_SYS_NAND_BLOCK_SIZE=0x40000
+              CONFIG_SYS_NAND_PAGE_SIZE=0x4000
+              CONFIG_SYS_NAND_OOBSIZE=0x100
+              CONFIG_CMD_MTD=y
+              CONFIG_CMD_NAND=y
+              CONFIG_CMD_UBI=y
+              CONFIG_MTD_UBI=y
+              CONFIG_SYS_MAX_NAND_DEVICE=1
+              EOF
               # Force a fail if it didn't work
               grep "CONFIG_NAND_SUNXI=y" .config || { echo "❌ CONFIG_NAND_SUNXI not set!"; exit 1; }
 
