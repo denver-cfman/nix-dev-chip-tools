@@ -47,6 +47,7 @@
             "HOSTCFLAGS=-I${pkgs.buildPackages.openssl.dev}/include"
             "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
             "DEVICE_TREE=sun5i-r8-chip"
+            "DTC=${pkgs.buildPackages.dtc}/bin/dtc"
           ];
 
           postPatch = ''
