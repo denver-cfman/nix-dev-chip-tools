@@ -23,10 +23,10 @@
           pname = "uboot-chip";
           version = "2023.10";
           src = pkgs.fetchFromGitHub {
-            owner = "NextThingCo";
-            repo = "u-boot";
+            owner = "nextthingco";
+            repo = "CHIP-u-boot";
             rev = "chip/stable";
-            hash = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA="; # Replace with actual hash after first run
+            hash = ""; # Replace with actual hash after first run
           };
           nativeBuildInputs = [ 
             pkgs.buildPackages.gcc
