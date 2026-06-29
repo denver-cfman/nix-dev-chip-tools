@@ -97,9 +97,6 @@
           '';
 
           buildPhase = ''
-            runHook preBuild
-            patchShebangs tools/
-            make olddefconfig $makeFlags
             make -j$(nproc) $makeFlags
             runHook postBuild
           '';
