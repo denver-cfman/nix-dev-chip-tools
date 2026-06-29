@@ -62,7 +62,7 @@
           '';
 
           configurePhase = ''
-            # 1. Clean up
+            cd u-boot-2023.10
             make distclean
             make sun5i_defconfig $makeFlags
             patchShebangs scripts/
