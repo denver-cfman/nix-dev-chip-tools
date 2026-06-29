@@ -73,31 +73,35 @@
               
               # 2. Load the base configuration
               make CHIP_defconfig $makeFlags
+              if [ -f "scripts/config" ]; then
+                # 3. Apply your custom changes
+                # Use the scripts/config tool to modify options instead of 'cat >>', 
+                # as it handles dependency checking correctly.
+                ./scripts/config --enable CONFIG_MTD
+                ./scripts/config --enable CONFIG_DM_MTD
+                ./scripts/config --enable CONFIG_MTD_RAW_NAND
+                ./scripts/config --enable CONFIG_NAND_SUNXI
+                ./scripts/config --set-val CONFIG_SYS_NAND_BLOCK_SIZE 0x40000
+                ./scripts/config --set-val CONFIG_SYS_NAND_PAGE_SIZE 0x4000
+                ./scripts/config --set-val CONFIG_SYS_NAND_OOBSIZE 0x100
+                ./scripts/config --enable CONFIG_CMD_MTD
+                ./scripts/config --enable CONFIG_CMD_NAND
+                ./scripts/config --enable CONFIG_CMD_UBI
+                ./scripts/config --enable CONFIG_MTD_UBI
+                ./scripts/config --set-val CONFIG_SYS_MAX_NAND_DEVICE 1
               
-              # 3. Apply your custom changes
-              # Use the scripts/config tool to modify options instead of 'cat >>', 
-              # as it handles dependency checking correctly.
-              ./scripts/config --enable CONFIG_MTD
-              ./scripts/config --enable CONFIG_DM_MTD
-              ./scripts/config --enable CONFIG_MTD_RAW_NAND
-              ./scripts/config --enable CONFIG_NAND_SUNXI
-              ./scripts/config --set-val CONFIG_SYS_NAND_BLOCK_SIZE 0x40000
-              ./scripts/config --set-val CONFIG_SYS_NAND_PAGE_SIZE 0x4000
-              ./scripts/config --set-val CONFIG_SYS_NAND_OOBSIZE 0x100
-              ./scripts/config --enable CONFIG_CMD_MTD
-              ./scripts/config --enable CONFIG_CMD_NAND
-              ./scripts/config --enable CONFIG_CMD_UBI
-              ./scripts/config --enable CONFIG_MTD_UBI
-              ./scripts/config --set-val CONFIG_SYS_MAX_NAND_DEVICE 1
-            
-              # Disable bloated SPL features
-              ./scripts/config --disable CONFIG_SPL_EFI_PARTITION
-              ./scripts/config --disable CONFIG_SPL_FIT
-              ./scripts/config --disable CONFIG_SPL_FRAMEWORK
-              ./scripts/config --enable CONFIG_SPL_USE_TINY_PRINTF
-              ./scripts/config --disable CONFIG_SPL_YMODEM_SUPPORT
-              ./scripts/config --disable CONFIG_SPL_NET
-            
+                # Disable bloated SPL features
+                ./scripts/config --disable CONFIG_SPL_EFI_PARTITION
+                ./scripts/config --disable CONFIG_SPL_FIT
+                ./scripts/config --disable CONFIG_SPL_FRAMEWORK
+                ./scripts/config --enable CONFIG_SPL_USE_TINY_PRINTF
+                ./scripts/config --disable CONFIG_SPL_YMODEM_SUPPORT
+                ./scripts/config --disable CONFIG_SPL_NET
+              else
+                echo "Error: scripts/config not found in $(pwd)"
+                ls -l scripts/
+                exit 1
+              fi
               # 4. Finalize the configuration to resolve dependencies
               make olddefconfig $makeFlags
               
