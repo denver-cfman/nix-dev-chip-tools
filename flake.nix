@@ -64,9 +64,8 @@
           '';
 
           configurePhase = ''
-            cd u-boot-2023.10
             make distclean
-            make sun5i_defconfig $makeFlags
+            make CHIP_defconfig $makeFlags
             patchShebangs scripts/
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             
