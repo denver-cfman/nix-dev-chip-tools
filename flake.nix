@@ -57,6 +57,9 @@
           '';
 
           configurePhase = ''
+              ### Debug
+              ls include/linux/compiler-gcc*.h
+
               make distclean
               make CHIP_defconfig $makeFlags
               cat >> .config <<EOF
