@@ -48,6 +48,14 @@
             "DEVICE_TREE=sun5i-r8-chip"
           ];
 
+          postPatch = ''
+            # Create a dummy header file to satisfy the compiler version check
+            cp include/linux/compiler-gcc{9,13}.h
+            # If you use gcc14 or gcc15 later, just keep adding symlinks/copies
+            cp include/linux/compiler-gcc{9,14}.h
+            cp include/linux/compiler-gcc{9,15}.h
+          '';
+
           configurePhase = ''
               make distclean
               make CHIP_defconfig $makeFlags
