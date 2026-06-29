@@ -49,27 +49,11 @@
           ];
 
           postPatch = ''
-            # Use sed to find the 'soc' block and insert the node just before the closing brace
-            # This avoids syntax errors caused by appending to the end of the file
-            sed -i '/soc {/,/};/ {
-              /};/i \
-              nand: nand@01c03000 {\
-                  compatible = "allwinner,sun4i-a10-nand";\
-                  reg = <0x01c03000 0x1000>;\
-                  interrupts = <37>;\
-                  clocks = <&ccu 55>;\
-                  status = "okay";\
-              };
-            }' arch/arm/dts/sun5i-a13.dtsi
           '';
 
           configurePhase = ''
             make distclean
             make CHIP_defconfig $makeFlags
-            patchShebangs scripts/
-            sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
-            
-
             cat >> .config <<EOF
             CONFIG_MTD=y
             CONFIG_DM_MTD=y
