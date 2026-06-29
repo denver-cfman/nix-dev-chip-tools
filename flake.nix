@@ -66,7 +66,8 @@
           '';
 
             configurePhase = ''
-              cd $(ls -d u-boot* | head -n 1)
+              sourceRoot=$(ls -d u-boot* | head -n 1)
+              cd "$sourceRoot"
               
               # 1. Start clean
               make distclean
@@ -74,18 +75,19 @@
               # 2. Load the base configuration
               make CHIP_defconfig $makeFlags
 
-              # Helper function to set or disable options
-                set_config() {
-                  # If the option exists, change it; if not, append it
+              set_config() {
                   if grep -q "$1=" .config; then
                     sed -i "s/^$1=.*/$1=$2/" .config
                   else
                     echo "$1=$2" >> .config
                   fi
                 }
-
-              disable_config() {
+                disable_config() {
                   sed -i "s/^$1=.*/# $1 is not set/" .config
+                  # If the line wasn't found, add it as disabled
+                  if ! grep -q "# $1 is not set" .config; then
+                     echo "# $1 is not set" >> .config
+                  fi
                 }
 
                 set_config CONFIG_MTD y
@@ -102,6 +104,11 @@
                 disable_config CONFIG_SPL_FRAMEWORK
                 disable_config CONFIG_SPL_YMODEM_SUPPORT
                 disable_config CONFIG_SPL_NET
+
+                # 4. DEBUG: Print to logs
+                echo "--- CURRENT .CONFIG START ---"
+                cat .config
+                echo "--- CURRENT .CONFIG END ---"
 
               # 4. Finalize the configuration to resolve dependencies
               make olddefconfig $makeFlags
