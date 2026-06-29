@@ -60,7 +60,7 @@
 
           configurePhase = ''
               ### Debug
-              ls include/linux/compiler-gcc*.h
+              cd $(ls -d u-boot* | head -n 1)
 
               make distclean
               make CHIP_defconfig $makeFlags
@@ -79,9 +79,10 @@
               CONFIG_SYS_MAX_NAND_DEVICE=1
               EOF
 
-              ./scripts/config --enable CONFIG_USB_KEYBOARD
+              #./scripts/config --enable CONFIG_USB_KEYBOARD
               ./scripts/config --enable CONFIG_USB_GADGET
               ./scripts/config --enable CONFIG_USB_STORAGE
+              ./scripts/config --disable CONFIG_USB_KEYBOARD
 
               # Force a fail if it didn't work
               grep "CONFIG_NAND_SUNXI=y" .config || { echo "❌ CONFIG_NAND_SUNXI not set!"; exit 1; }
