@@ -99,6 +99,9 @@
               ./scripts/config --disable CONFIG_SPL_SHA1
               ./scripts/config --disable CONFIG_SPL_SHA256
               ./scripts/config --disable CONFIG_SPL_IMAGE_SIGN_VERIFY
+              ./scripts/config --disable CONFIG_SPL_YMODEM_SUPPORT
+              ./scripts/config --enable CONFIG_SPL_USE_TINY_PRINTF
+              ./scripts/config --disable CONFIG_SPL_NET
 
               #./scripts/config --enable CONFIG_USB_KEYBOARD
               ./scripts/config --enable CONFIG_USB_GADGET
