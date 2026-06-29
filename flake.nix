@@ -29,7 +29,7 @@
             hash = "sha256-PwtEHtz2qbE7ir4UoOL1ySPWXUCpocZ0Eenf7o+juEg="; # Replace with actual hash after first run
           };
           nativeBuildInputs = [ 
-            pkgs.buildPackages.gcc12
+            pkgs.buildPackages.gcc13
             pkgs.buildPackages.binutils
             pkgs.buildPackages.bison 
             pkgs.buildPackages.flex 
@@ -124,7 +124,7 @@
             nativeBuildInputs = with pkgs; [
               git
               curl
-              gcc12
+              gcc13
               sunxi-tools
               android-tools
               usbutils
