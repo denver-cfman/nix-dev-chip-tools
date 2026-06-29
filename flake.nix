@@ -78,6 +78,11 @@
               CONFIG_MTD_UBI=y
               CONFIG_SYS_MAX_NAND_DEVICE=1
               EOF
+
+              ./scripts/config --enable CONFIG_USB_KEYBOARD
+              ./scripts/config --enable CONFIG_USB_GADGET
+              ./scripts/config --enable CONFIG_USB_STORAGE
+
               # Force a fail if it didn't work
               grep "CONFIG_NAND_SUNXI=y" .config || { echo "❌ CONFIG_NAND_SUNXI not set!"; exit 1; }
 
