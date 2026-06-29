@@ -85,6 +85,11 @@
               CONFIG_SYS_MAX_NAND_DEVICE=1
               EOF
 
+              ./scripts/config --disable CONFIG_SPL_EFI_PARTITION
+              ./scripts/config --disable CONFIG_SPL_FIT_SIGNATURE
+              ./scripts/config --disable CONFIG_SPL_FIT
+              ./scripts/config --disable CONFIG_SPL_LOAD_FIT
+
               #./scripts/config --enable CONFIG_USB_KEYBOARD
               ./scripts/config --enable CONFIG_USB_GADGET
               ./scripts/config --enable CONFIG_USB_STORAGE
