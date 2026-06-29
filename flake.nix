@@ -61,10 +61,14 @@
           '';
 
           configurePhase = ''
+            # 1. Clean up
+            make distclean
+            
+            # 2. Load the C.H.I.P. config
+            make CHIP_defconfig $makeFlags
             patchShebangs scripts/
             sed -i 's/SWIG_Python_AppendOutput/SWIG_AppendOutput/g' scripts/dtc/pylibfdt/libfdt.i_shipped
             
-            make CHIP_defconfig $makeFlags
 
             cat >> .config <<EOF
             CONFIG_MTD=y
