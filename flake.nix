@@ -93,6 +93,11 @@
               ./scripts/config --disable CONFIG_SPL_LIBDISK_SUPPORT
               ./scripts/config --disable CONFIG_SPL_PRINTF
               #./scripts/config --disable CONFIG_SPL_SERIAL_SUPPORT
+              ./scripts/config --disable CONFIG_SPL_FRAMEWORK
+              ./scripts/config --disable CONFIG_SPL_BANNER_PRINT
+              ./scripts/config --disable CONFIG_SPL_SHA1
+              ./scripts/config --disable CONFIG_SPL_SHA256
+              ./scripts/config --disable CONFIG_SPL_IMAGE_SIGN_VERIFY
 
               #./scripts/config --enable CONFIG_USB_KEYBOARD
               ./scripts/config --enable CONFIG_USB_GADGET
