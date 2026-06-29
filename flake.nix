@@ -104,6 +104,8 @@
               ./scripts/config --enable CONFIG_USB_STORAGE
               ./scripts/config --disable CONFIG_USB_KEYBOARD
 
+              cat .config
+
               # Force a fail if it didn't work
               grep "CONFIG_NAND_SUNXI=y" .config || { echo "❌ CONFIG_NAND_SUNXI not set!"; exit 1; }
 
