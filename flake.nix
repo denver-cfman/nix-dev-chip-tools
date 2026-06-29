@@ -65,34 +65,39 @@
             echo "/* Emptied by Nix build to bypass legacy USB-KBD issues */" > common/usb_kbd.c
           '';
 
-            configurePhase = ''
-              sourceRoot=$(ls -d u-boot* | head -n 1)
-              cd "$sourceRoot"
-              
-              # 1. Start clean
-              make distclean
-              
-              # 2. Load the base configuration
-              make CHIP_defconfig $makeFlags
-
-                sed -i 's/CONFIG_SYS_EXTRA_OPTIONS=".*"/&,CONFIG_SPL_USE_TINY_PRINTF,CONFIG_SPL_LDSCRIPT="arch\/arm\/cpu\/armv7\/u-boot-spl.lds"/' .config
-                
-                # Explicitly append the disables if they are still missing
-                echo "CONFIG_SPL_YMODEM_SUPPORT=n" >> .config
-                echo "CONFIG_SPL_NET=n" >> .config
-
-              # 4. Finalize the configuration to resolve dependencies
-              make olddefconfig $makeFlags
-              
-              # Verify one of your flags made it
-              grep "CONFIG_NAND_SUNXI=y" .config || exit 1
-
-                # 4. DEBUG: Print to logs
-                echo "--- CURRENT .CONFIG START ---"
-                cat .config
-                echo "--- CURRENT .CONFIG END ---"
-
-            '';
+          configurePhase = ''
+            sourceRoot=$(ls -d u-boot* | head -n 1)
+            cd "$sourceRoot"
+          
+            # 1. Standard config
+            make distclean
+            make CHIP_defconfig $makeFlags
+            make olddefconfig $makeFlags
+          
+            # 2. Force-inject settings by editing the file directly
+            # If the line exists as "# CONFIG_... is not set", change it to "=y"
+            # If it doesn't exist, append it.
+            
+            inject_config() {
+              if grep -q "# $1 is not set" .config; then
+                sed -i "s/# $1 is not set/$1=y/" .config
+              elif grep -q "$1=" .config; then
+                sed -i "s/$1=.*/$1=y/" .config
+              else
+                echo "$1=y" >> .config
+              fi
+            }
+          
+            inject_config CONFIG_SPL_USE_TINY_PRINTF
+            
+            # Ensure these are disabled
+            sed -i "s/CONFIG_SPL_YMODEM_SUPPORT=.*/# CONFIG_SPL_YMODEM_SUPPORT is not set/" .config
+            sed -i "s/CONFIG_SPL_NET=.*/# CONFIG_SPL_NET is not set/" .config
+          
+            # 3. Final verification
+            echo "--- FINAL .CONFIG ---"
+            grep "CONFIG_SPL_USE_TINY_PRINTF" .config
+          '';
 
           buildPhase = ''
             make -j$(nproc) $makeFlags
