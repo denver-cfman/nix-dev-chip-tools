@@ -45,9 +45,13 @@
             "HOSTCC=gcc"
             "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
             "DTC=${pkgs.dtc}/bin/dtc"
-            "KCFLAGS=-Os -ffunction-sections -fdata-sections -fno-stack-protector -fno-common"
-            "KBUILD_CFLAGS=-Wno-error"
           ];
+
+          # Inject flags into the build environment
+          preBuild = ''
+            export KCFLAGS="-Os -ffunction-sections -fdata-sections -fno-stack-protector -fno-common"
+            export KBUILD_CFLAGS="-Wno-error"
+          '';
 
           postPatch = ''
             # 1. Satisfy compiler version checks (from our previous fix)
