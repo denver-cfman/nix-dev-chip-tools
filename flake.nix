@@ -48,9 +48,6 @@
             "DEVICE_TREE=sun5i-r8-chip"
           ];
 
-          postPatch = ''
-          '';
-
           configurePhase = ''
             make distclean
             make CHIP_defconfig $makeFlags
