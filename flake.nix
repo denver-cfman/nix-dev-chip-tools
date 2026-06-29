@@ -73,35 +73,36 @@
               
               # 2. Load the base configuration
               make CHIP_defconfig $makeFlags
-              if [ -f "scripts/config" ]; then
-                # 3. Apply your custom changes
-                # Use the scripts/config tool to modify options instead of 'cat >>', 
-                # as it handles dependency checking correctly.
-                ./scripts/config --enable CONFIG_MTD
-                ./scripts/config --enable CONFIG_DM_MTD
-                ./scripts/config --enable CONFIG_MTD_RAW_NAND
-                ./scripts/config --enable CONFIG_NAND_SUNXI
-                ./scripts/config --set-val CONFIG_SYS_NAND_BLOCK_SIZE 0x40000
-                ./scripts/config --set-val CONFIG_SYS_NAND_PAGE_SIZE 0x4000
-                ./scripts/config --set-val CONFIG_SYS_NAND_OOBSIZE 0x100
-                ./scripts/config --enable CONFIG_CMD_MTD
-                ./scripts/config --enable CONFIG_CMD_NAND
-                ./scripts/config --enable CONFIG_CMD_UBI
-                ./scripts/config --enable CONFIG_MTD_UBI
-                ./scripts/config --set-val CONFIG_SYS_MAX_NAND_DEVICE 1
-              
-                # Disable bloated SPL features
-                ./scripts/config --disable CONFIG_SPL_EFI_PARTITION
-                ./scripts/config --disable CONFIG_SPL_FIT
-                ./scripts/config --disable CONFIG_SPL_FRAMEWORK
-                ./scripts/config --enable CONFIG_SPL_USE_TINY_PRINTF
-                ./scripts/config --disable CONFIG_SPL_YMODEM_SUPPORT
-                ./scripts/config --disable CONFIG_SPL_NET
-              else
-                echo "Error: scripts/config not found in $(pwd)"
-                ls -l scripts/
-                exit 1
-              fi
+
+              # Helper function to set or disable options
+                set_config() {
+                  # If the option exists, change it; if not, append it
+                  if grep -q "$1=" .config; then
+                    sed -i "s/^$1=.*/$1=$2/" .config
+                  else
+                    echo "$1=$2" >> .config
+                  fi
+                }
+
+              disable_config() {
+                  sed -i "s/^$1=.*/# $1 is not set/" .config
+                }
+
+                set_config CONFIG_MTD y
+                set_config CONFIG_DM_MTD y
+                set_config CONFIG_MTD_RAW_NAND y
+                set_config CONFIG_NAND_SUNXI y
+                set_config CONFIG_CMD_MTD y
+                set_config CONFIG_CMD_NAND y
+                set_config CONFIG_CMD_UBI y
+                set_config CONFIG_MTD_UBI y
+                set_config CONFIG_SPL_USE_TINY_PRINTF y
+                disable_config CONFIG_SPL_EFI_PARTITION
+                disable_config CONFIG_SPL_FIT
+                disable_config CONFIG_SPL_FRAMEWORK
+                disable_config CONFIG_SPL_YMODEM_SUPPORT
+                disable_config CONFIG_SPL_NET
+
               # 4. Finalize the configuration to resolve dependencies
               make olddefconfig $makeFlags
               
