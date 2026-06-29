@@ -93,7 +93,21 @@
             # Ensure these are disabled
             sed -i "s/CONFIG_SPL_YMODEM_SUPPORT=.*/# CONFIG_SPL_YMODEM_SUPPORT is not set/" .config
             sed -i "s/CONFIG_SPL_NET=.*/# CONFIG_SPL_NET is not set/" .config
-          
+
+            # 1. Disable expensive features that are often default-enabled
+            sed -i 's/CONFIG_SPL_LIBCOMMON_SUPPORT=y/# CONFIG_SPL_LIBCOMMON_SUPPORT is not set/' .config
+            sed -i 's/CONFIG_SPL_LIBDISK_SUPPORT=y/# CONFIG_SPL_LIBDISK_SUPPORT is not set/' .config
+            sed -i 's/CONFIG_SPL_GPIO_SUPPORT=y/# CONFIG_SPL_GPIO_SUPPORT is not set/' .config
+            
+            # 2. If you are booting from NAND (based on your earlier config), 
+            # you might be able to disable MMC/SD card support in SPL to save space.
+            # Only do this if you are NOT booting from an SD card.
+            sed -i 's/CONFIG_SPL_MMC_SUPPORT=y/# CONFIG_SPL_MMC_SUPPORT is not set/' .config
+            
+            # 3. Force a rebuild of the configuration
+            make silentoldconfig
+
+
             # 3. Final verification
             echo "--- FINAL .CONFIG ---"
             grep "CONFIG_SPL_USE_TINY_PRINTF" .config
