@@ -48,8 +48,9 @@
             "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
             "DEVICE_TREE=sun5i-r8-chip"
             "DTC=${pkgs.buildPackages.dtc}/bin/dtc"
+            # Use quotes to ensure the entire string is passed as one argument to make
             "KCFLAGS=-Os -ffunction-sections -fdata-sections -fno-stack-protector -fno-common"
-            "KBUILD_CFLAGS+=-Wno-error"
+            "KBUILD_CFLAGS=-Wno-error"
           ];
 
           postPatch = ''
