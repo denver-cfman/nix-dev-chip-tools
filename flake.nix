@@ -89,6 +89,10 @@
               ./scripts/config --disable CONFIG_SPL_FIT_SIGNATURE
               ./scripts/config --disable CONFIG_SPL_FIT
               ./scripts/config --disable CONFIG_SPL_LOAD_FIT
+              ./scripts/config --disable CONFIG_SPL_LIBCOMMON_SUPPORT
+              ./scripts/config --disable CONFIG_SPL_LIBDISK_SUPPORT
+              ./scripts/config --disable CONFIG_SPL_PRINTF
+              #./scripts/config --disable CONFIG_SPL_SERIAL_SUPPORT
 
               #./scripts/config --enable CONFIG_USB_KEYBOARD
               ./scripts/config --enable CONFIG_USB_GADGET
