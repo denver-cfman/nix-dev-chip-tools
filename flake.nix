@@ -113,13 +113,18 @@
             grep "CONFIG_SPL_USE_TINY_PRINTF" .config
           '';
 
+          buildFlags = [
+              "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
+              "V=1" # This makes the build verbose so you can see exactly what fails
+            ];
+          
           buildPhase = ''
-            # The environment needs to know where the cross-compiler is
-            export CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}
+            runHook preBuild
             
-            # Perform the actual build
-            # -j$NIX_BUILD_CORES enables parallel compilation
-            make -j$NIX_BUILD_CORES
+            # We must pass the build flags to the make command
+            make $buildFlags -j$NIX_BUILD_CORES
+            
+            runHook postBuild
           '';
 
           installPhase = ''
