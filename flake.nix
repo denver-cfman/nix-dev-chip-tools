@@ -49,11 +49,11 @@
           ];
 
           postPatch = ''
-            # Create a dummy header file to satisfy the compiler version check
-            cp include/linux/compiler-gcc{9,13}.h
-            # If you use gcc14 or gcc15 later, just keep adding symlinks/copies
-            cp include/linux/compiler-gcc{9,14}.h
-            cp include/linux/compiler-gcc{9,15}.h
+            # The compiler version is detected as 13/14/15, but we only have headers up to 5.
+            # We symlink/copy the highest available header (gcc5.h) to satisfy the modern compiler versions.
+            cp include/linux/compiler-gcc5.h include/linux/compiler-gcc13.h
+            cp include/linux/compiler-gcc5.h include/linux/compiler-gcc14.h
+            cp include/linux/compiler-gcc5.h include/linux/compiler-gcc15.h
           '';
 
           configurePhase = ''
