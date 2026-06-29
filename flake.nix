@@ -51,6 +51,7 @@
           preBuild = ''
             export KCFLAGS="-Os -ffunction-sections -fdata-sections -fno-stack-protector -fno-common"
             export KBUILD_CFLAGS="-Wno-error"
+            export LDFLAGS="--gc-sections -Map=u-boot-spl.map"
           '';
 
           postPatch = ''
