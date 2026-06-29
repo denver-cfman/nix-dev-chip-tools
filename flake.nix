@@ -42,13 +42,9 @@
           ];
 
           makeFlags = [
-            "HOSTCC=${pkgs.buildPackages.stdenv.cc.targetPrefix}gcc"
+            "HOSTCC=gcc"
             "CROSS_COMPILE=${armPkgs.stdenv.cc.targetPrefix}"
-            "HOSTCFLAGS=-I${pkgs.buildPackages.openssl.dev}/include"
-            "HOSTLDFLAGS=-L${pkgs.buildPackages.openssl.out}/lib"
-            "DEVICE_TREE=sun5i-r8-chip"
-            "DTC=${pkgs.buildPackages.dtc}/bin/dtc"
-            # Use quotes to ensure the entire string is passed as one argument to make
+            "DTC=${pkgs.dtc}/bin/dtc"
             "KCFLAGS=-Os -ffunction-sections -fdata-sections -fno-stack-protector -fno-common"
             "KBUILD_CFLAGS=-Wno-error"
           ];
