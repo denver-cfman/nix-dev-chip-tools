@@ -26,7 +26,7 @@
             owner = "nextthingco";
             repo = "CHIP-u-boot";
             rev = "chip/stable";
-            hash = ""; # Replace with actual hash after first run
+            hash = "sha256-PwtEHtz2qbE7ir4UoOL1ySPWXUCpocZ0Eenf7o+juEg="; # Replace with actual hash after first run
           };
           nativeBuildInputs = [ 
             pkgs.buildPackages.gcc
