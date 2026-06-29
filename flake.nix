@@ -33,7 +33,8 @@
             pkgs.buildPackages.binutils
             pkgs.buildPackages.bison 
             pkgs.buildPackages.flex 
-            pkgs.buildPackages.bc 
+            pkgs.buildPackages.bc
+            pkgs.buildPackages.dtc
             pkgs.buildPackages.swig
             pkgs.buildPackages.pkg-config
             pkgs.buildPackages.openssl
@@ -135,6 +136,7 @@
             nativeBuildInputs = with pkgs; [
               git
               curl
+              dtc
               gcc13
               sunxi-tools
               android-tools
