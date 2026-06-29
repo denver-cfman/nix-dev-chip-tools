@@ -75,46 +75,23 @@
               # 2. Load the base configuration
               make CHIP_defconfig $makeFlags
 
-              set_config() {
-                  if grep -q "$1=" .config; then
-                    sed -i "s/^$1=.*/$1=$2/" .config
-                  else
-                    echo "$1=$2" >> .config
-                  fi
-                }
-                disable_config() {
-                  sed -i "s/^$1=.*/# $1 is not set/" .config
-                  # If the line wasn't found, add it as disabled
-                  if ! grep -q "# $1 is not set" .config; then
-                     echo "# $1 is not set" >> .config
-                  fi
-                }
-
-                set_config CONFIG_MTD y
-                set_config CONFIG_DM_MTD y
-                set_config CONFIG_MTD_RAW_NAND y
-                set_config CONFIG_NAND_SUNXI y
-                set_config CONFIG_CMD_MTD y
-                set_config CONFIG_CMD_NAND y
-                set_config CONFIG_CMD_UBI y
-                set_config CONFIG_MTD_UBI y
-                set_config CONFIG_SPL_USE_TINY_PRINTF y
-                disable_config CONFIG_SPL_EFI_PARTITION
-                disable_config CONFIG_SPL_FIT
-                disable_config CONFIG_SPL_FRAMEWORK
-                disable_config CONFIG_SPL_YMODEM_SUPPORT
-                disable_config CONFIG_SPL_NET
-
-                # 4. DEBUG: Print to logs
-                echo "--- CURRENT .CONFIG START ---"
-                cat .config
-                echo "--- CURRENT .CONFIG END ---"
+                sed -i 's/CONFIG_SYS_EXTRA_OPTIONS=".*"/&,CONFIG_SPL_USE_TINY_PRINTF,CONFIG_SPL_LDSCRIPT="arch\/arm\/cpu\/armv7\/u-boot-spl.lds"/' .config
+                
+                # Explicitly append the disables if they are still missing
+                echo "CONFIG_SPL_YMODEM_SUPPORT=n" >> .config
+                echo "CONFIG_SPL_NET=n" >> .config
 
               # 4. Finalize the configuration to resolve dependencies
               make olddefconfig $makeFlags
               
               # Verify one of your flags made it
               grep "CONFIG_NAND_SUNXI=y" .config || exit 1
+
+                # 4. DEBUG: Print to logs
+                echo "--- CURRENT .CONFIG START ---"
+                cat .config
+                echo "--- CURRENT .CONFIG END ---"
+
             '';
 
           buildPhase = ''
